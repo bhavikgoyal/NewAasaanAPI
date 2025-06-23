@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aasaan_API", "Aasaan_API.csproj", "{C1A330CE-91DE-52B8-5C3D-E574D2D58C79}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1A330CE-91DE-52B8-5C3D-E574D2D58C79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1A330CE-91DE-52B8-5C3D-E574D2D58C79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1A330CE-91DE-52B8-5C3D-E574D2D58C79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1A330CE-91DE-52B8-5C3D-E574D2D58C79}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A7FEA82D-181D-4152-B20C-9E7282901A3E}
+	EndGlobalSection
+EndGlobal
