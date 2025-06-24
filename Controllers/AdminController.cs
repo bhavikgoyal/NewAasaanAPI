@@ -177,10 +177,10 @@ namespace Aasaan_API.Controllers
       return response;
     }
 
-        [HttpPut("UpdateUser/{id:int}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] AdminUserCLS userToUpdate)
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser([FromBody] AdminUserCLS userToUpdate)
         {
-            if (id != userToUpdate.UserID)
+            if (userToUpdate.UserID == 0)
             {
                 return BadRequest("ID mismatch.");
             }
@@ -196,7 +196,7 @@ namespace Aasaan_API.Controllers
 
                 if (updatedUser == null)
                 {
-                    return NotFound($"User with ID {id} not found.");
+                    return NotFound($"User with ID {userToUpdate.EmailID} not found.");
                 }
 
                 return Ok(updatedUser);
