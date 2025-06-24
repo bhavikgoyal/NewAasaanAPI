@@ -10,7 +10,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Aasaan_API.Controllers
 
 {
-    
+
   [Authorize]
   [Route("api/[controller]")]
   [ApiController]
@@ -25,7 +25,7 @@ namespace Aasaan_API.Controllers
       _adminService = adminService;
     }
 
-        [HttpGet("GetAllUsersDetails")]
+    [HttpGet("GetAllUsersDetails")]
     public List<ResponseRegistrationCLS> GetAllUsersDetails()
     {
       try
@@ -38,25 +38,25 @@ namespace Aasaan_API.Controllers
       }
     }
 
-        [HttpGet("SearchUsers")]
-        public async Task<IActionResult> SearchUsers(
-            [FromQuery] string? MobileNumber,
-            [FromQuery] int PageSize = 50,
-            [FromQuery] int PageIndex = 1)
-        {
-            try
-            {
-                var result = await _adminService.SearchUsersAsync(MobileNumber, PageSize, PageIndex);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception (ex)
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
-        }
+    [HttpGet("SearchUsers")]
+    public async Task<IActionResult> SearchUsers(
+        [FromQuery] string? MobileNumber,
+        [FromQuery] int PageSize = 50,
+        [FromQuery] int PageIndex = 1)
+    {
+      try
+      {
+        var result = await _adminService.SearchUsersAsync(MobileNumber, PageSize, PageIndex);
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (ex)
+        return StatusCode(500, "An error occurred while processing your request.");
+      }
+    }
 
-        [HttpPost("DeleteUsersRegisteredRecord")]
+    [HttpPost("DeleteUsersRegisteredRecord")]
     public string DeleteUsersRecord(int UserID)
     {
       Response<ResponseDeleteUserModel> response = new Response<ResponseDeleteUserModel>();
@@ -78,10 +78,10 @@ namespace Aasaan_API.Controllers
         }
         else
         {
-         
+
         }
       }
-      catch(Exception ex)
+      catch (Exception ex)
       {
         response.code = 500;
         response.Data = null;
@@ -124,7 +124,7 @@ namespace Aasaan_API.Controllers
           response.message = "Data updated successfully";
         }
       }
-      catch(Exception ex)  
+      catch (Exception ex)
       {
         response.code = 500;
         response.Data = null;
@@ -177,35 +177,35 @@ namespace Aasaan_API.Controllers
       return response;
     }
 
-        [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromBody] AdminUserCLS userToUpdate)
+    [HttpPut("UpdateUser")]
+    public async Task<IActionResult> UpdateUser([FromBody] AdminUserCLS userToUpdate)
+    {
+      if (userToUpdate.UserID == 0)
+      {
+        return BadRequest("ID mismatch.");
+      }
+
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      try
+      {
+        var updatedUser = await _adminService.UpdateUserAsync(userToUpdate);
+
+        if (updatedUser == null)
         {
-            if (userToUpdate.UserID == 0)
-            {
-                return BadRequest("ID mismatch.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                var updatedUser = await _adminService.UpdateUserAsync(userToUpdate);
-
-                if (updatedUser == null)
-                {
-                    return NotFound($"User with ID {userToUpdate.EmailID} not found.");
-                }
-
-                return Ok(updatedUser);
-            }
-            catch (Exception ex)
-            {
-                
-                return StatusCode(500, "An error occurred while updating the user.");
-            }
+          return NotFound($"User with ID {userToUpdate.UserID} not found.");
         }
+
+        return Ok(updatedUser);
+      }
+      catch (Exception ex)
+      {
+
+        return StatusCode(500, "An error occurred while updating the user.");
+      }
     }
+  }
 }
