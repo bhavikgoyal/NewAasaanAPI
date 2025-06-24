@@ -70,8 +70,12 @@ try
 
   // Add services to the container.
 
-  builder.Services.AddControllers();
-  // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+  builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+      options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+  
   builder.Services.AddEndpointsApiExplorer();
   builder.Services.AddSwaggerGen();
 

@@ -27,11 +27,11 @@ namespace Aasaan_API.DbService
     {
       try
       {
-        _connectionCls.BeginTransaction();
+        //_connectionCls.BeginTransaction();
         _connectionCls.clearParameter();
         RegistrationData(registrationCL, DBTrans.Insert);
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_Insert_UsersRegistration", CommandType.StoredProcedure));
-        _connectionCls.CommitTransaction();
+        //_connectionCls.CommitTransaction();
         return ConvertToRegistrationData(dt);
       }
       catch (Exception ex)

@@ -176,5 +176,36 @@ namespace Aasaan_API.Controllers
       }
       return response;
     }
-  }
+
+        [HttpPut("UpdateUser/{id:int}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] AdminUserCLS userToUpdate)
+        {
+            if (id != userToUpdate.UserID)
+            {
+                return BadRequest("ID mismatch.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var updatedUser = await _adminService.UpdateUserAsync(userToUpdate);
+
+                if (updatedUser == null)
+                {
+                    return NotFound($"User with ID {id} not found.");
+                }
+
+                return Ok(updatedUser);
+            }
+            catch (Exception ex)
+            {
+                
+                return StatusCode(500, "An error occurred while updating the user.");
+            }
+        }
+    }
 }

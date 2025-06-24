@@ -12,6 +12,7 @@ namespace Aasaan_API.IServices
     public UpdateAppVersionModel UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel);
     public ResponseUserModel UpdateUserInactiveToTrial(int UserID, DateTime SubscriptionExpiryDate);
     Task<PaginatedResult<AdminUserCLS>> SearchUsersAsync(string? mobileNumber, int pageIndex, int pageSize);
+    Task<AdminUserCLS> UpdateUserAsync(AdminUserCLS userToUpdate);
     }
 
     

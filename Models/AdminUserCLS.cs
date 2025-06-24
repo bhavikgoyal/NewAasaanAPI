@@ -22,6 +22,16 @@ namespace Aasaan_API.Models
 
         public string Status { get; set; }
 
+        public string Platform { get; set; }
+
+        public string AppVersion { get; set; }
+
+        public DateTime? LastAPICallDate { get; set; } 
+
+        public string AdminNotes { get; set; }
+
+        public string AppCode { get; set; }
+
     }
 
     public class RequestRegistrationCLS
@@ -34,6 +44,7 @@ namespace Aasaan_API.Models
     public string AppVersion { get; set; }
     public string AdminNotes { get; set; }
     public string AppCode { get; set; }
+    
 
   }
 
@@ -44,13 +55,15 @@ namespace Aasaan_API.Models
     public string EmailID { get; set; }
     public DateTime DateofCreation { get; set; }
     public string DeviceID { get; set; }
-    public DateTime SubscriptionExpiryDate { get; set; }
+    public DateTime? SubscriptionExpiryDate { get; set; }
     public string Platform { get; set; }
     public string AppVersion { get; set; }
-    public DateTime LastAPICallDate { get; set; }
+    public DateTime? LastAPICallDate { get; set; }
     public string AdminNotes { get; set; }
     public string AppCode { get; set; }
     public string SubscriptionStatus { get; set; }
+
+    public string Status { get; set; }
   }
 
   public class CheckMembershipStatusModel
