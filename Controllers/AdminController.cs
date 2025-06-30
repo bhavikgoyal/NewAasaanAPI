@@ -26,11 +26,11 @@ namespace Aasaan_API.Controllers
     }
 
     [HttpGet("GetAllUsersDetails")]
-    public List<ResponseRegistrationCLS> GetAllUsersDetails()
+    public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize)
     {
       try
       {
-        return _adminDetails.GetAllUsersDetails();
+        return _adminDetails.GetAllUsersDetails(PageIndex, PageSize);
       }
       catch (Exception ex)
       {
@@ -39,10 +39,7 @@ namespace Aasaan_API.Controllers
     }
 
     [HttpGet("SearchUsers")]
-    public async Task<IActionResult> SearchUsers(
-        [FromQuery] string? MobileNumber,
-        [FromQuery] int PageSize = 50,
-        [FromQuery] int PageIndex = 1)
+    public async Task<IActionResult> SearchUsers(string MobileNumber, int PageSize, int PageIndex)
     {
       try
       {
@@ -56,7 +53,7 @@ namespace Aasaan_API.Controllers
       }
     }
 
-    [HttpPost("DeleteUsersRegisteredRecord")]
+    [HttpDelete("DeleteUsersRegisteredRecord")]
     public string DeleteUsersRecord(int UserID)
     {
       Response<ResponseDeleteUserModel> response = new Response<ResponseDeleteUserModel>();
