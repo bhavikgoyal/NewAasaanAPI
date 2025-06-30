@@ -53,7 +53,7 @@ namespace Aasaan_API.Controllers
             };
 
             response.code = 200;
-            response.Data = newcreate;
+            response.Data = null;
             response.message = "User already registered";
             return response;
           }

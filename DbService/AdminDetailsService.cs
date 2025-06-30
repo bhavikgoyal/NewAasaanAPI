@@ -175,6 +175,7 @@ namespace Aasaan_API.DbService
           AdminNotes = row["AdminNotes"]?.ToString(),
           AppCode = row["AppCode"]?.ToString(),
           LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]),
+          TotalCount = Convert.ToInt32(row["TotalCount"]),
         };
         userList.Add(user);
       }
@@ -294,7 +295,7 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@MobileNumber", Mobilenumber);
         _connectionCls.addParameter("@DeviceId", DeviceId);
         _connectionCls.addParameter("@UserID", UserId);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_CheckMembershipStatus", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_CheckMembershipStatus", CommandType.StoredProcedure));
         return ConvertToCheckMembershipStatus(dt);
       }
       catch (Exception ex)
@@ -365,11 +366,14 @@ namespace Aasaan_API.DbService
       return SelectedUser;
     }
 
-    public List<ResponseRegistrationCLS> GetAllUsersDetails()
+    public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize)
     {
       try
       {
         _connectionCls.clearParameter();
+        _connectionCls.addParameter("PageSize", PageSize);
+        _connectionCls.addParameter("PageIndex", PageIndex);
+
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetAllUsersDetails", CommandType.StoredProcedure));
         return ConvertToGetAllUsersDetails(dt);
       }
@@ -400,11 +404,10 @@ namespace Aasaan_API.DbService
         users.Platform = row["Platform"]?.ToString();
         users.AppVersion = row["AppVersion"]?.ToString();
         users.LastAPICallDate = row["LastAPICallDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["LastAPICallDate"]);
-
         users.AdminNotes = row["AdminNotes"]?.ToString();
         users.AppCode = row["AppCode"]?.ToString();
         users.Status = row["Status"]?.ToString();
-
+        users.TotalRecords = Convert.ToInt32(row["TotalRecords"]);
         selectedUser.Add(users);
       }
 
@@ -437,13 +440,13 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@AppVersion", updateAppVersionModel.AppVersion);
         _connectionCls.addParameter("@Platforms", updateAppVersionModel.Platforms);
         _connectionCls.BeginTransaction();
-        object result = _connectionCls.ExecuteScalar("P2_UpdateAppVersion", CommandType.StoredProcedure);
+        object result = _connectionCls.ExecuteScalar("P2_sp_UpdateAppVersion", CommandType.StoredProcedure);
         _connectionCls.CommitTransaction();
         return updateAppVersionModel = updateAppVersionModel;
       }
       catch (Exception ex)
       {
-        throw new Exception("P2_UpdateAppVersion : " + ex.Message);
+        throw new Exception("P2_sp_UpdateAppVersion : " + ex.Message);
       }
     }
 
@@ -455,15 +458,15 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@UserID", UserID);
         _connectionCls.addParameter("@SubscriptionExpiryDate", SubscriptionExpiryDate);
         _connectionCls.BeginTransaction();
-        //object result = _connectionCls.ExecuteScalar("SP_Update_UserInActiveToTrial", CommandType.StoredProcedure);
+        //object result = _connectionCls.ExecuteScalar("P2_sp_Update_UserInActiveToTrial", CommandType.StoredProcedure);
         //_connectionCls.CommitTransaction();
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("SP_Update_UserInActiveToTrial", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_Update_UserInActiveToTrial", CommandType.StoredProcedure));
         return ConvertUpdateuser(dt);
       }
       catch (Exception ex)
       {
-        throw new Exception("SP_Update_UserInActiveToTrial : " + ex.Message);
+        throw new Exception("P2_sp_Update_UserInActiveToTrial : " + ex.Message);
       }
     }
     public ResponseUserModel ConvertUpdateuser(DataTable dt)

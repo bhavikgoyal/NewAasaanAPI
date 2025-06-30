@@ -8,7 +8,7 @@ namespace Aasaan_API.IServices
     public ResponseDeleteUserModel DeleteUsersRecord(int UserID);
     public ResponseDeleteUserModel saveUsersDataInHistoryTable(ResponseDeleteUserModel UserID);
     public List<CheckMembershipStatusModel> CheckMembershipStatus(string Mobilenumber, string DeviceId, Int32 UserId);
-    public List<ResponseRegistrationCLS> GetAllUsersDetails();
+    public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize);
     public UpdateAppVersionModel UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel);
     public ResponseUserModel UpdateUserInactiveToTrial(int UserID, DateTime SubscriptionExpiryDate);
     Task<PaginatedResult<AdminUserCLS>> SearchUsersAsync(string? mobileNumber, int pageIndex, int pageSize);

@@ -4,37 +4,38 @@ using System.Text.Json.Serialization;
 
 namespace Aasaan_API.Models
 {
-    public class AdminUserCLS
-    {
-        public int UserID { get; set; }
+  public class AdminUserCLS
+  {
+    public int UserID { get; set; }
 
-        public string EmailID { get; set; }
+    public string EmailID { get; set; }
 
-        public string MobileNumber { get; set; }
+    public string MobileNumber { get; set; }
 
-        public string DeviceID { get; set; }
+    public string DeviceID { get; set; }
 
-        public DateTime DateOfCreation { get; set; }
- 
-        public bool SubscriptionStatus { get; set; }
+    public DateTime DateOfCreation { get; set; }
 
-        public DateTime? SubscriptionExpiryDate { get; set; }
+    public bool SubscriptionStatus { get; set; }
 
-        public string Status { get; set; }
+    public DateTime? SubscriptionExpiryDate { get; set; }
 
-        public string Platform { get; set; }
+    public string Status { get; set; }
 
-        public string AppVersion { get; set; }
+    public string Platform { get; set; }
 
-        public DateTime? LastAPICallDate { get; set; } 
+    public string AppVersion { get; set; }
 
-        public string AdminNotes { get; set; }
+    public DateTime? LastAPICallDate { get; set; }
 
-        public string AppCode { get; set; }
+    public string AdminNotes { get; set; }
 
-    }
+    public string AppCode { get; set; }
+    public int TotalCount { get; set; }
 
-    public class RequestRegistrationCLS
+  }
+
+  public class RequestRegistrationCLS
   {
     public string MobileNumber { get; set; }
     public string EmailID { get; set; }
@@ -44,7 +45,7 @@ namespace Aasaan_API.Models
     public string AppVersion { get; set; }
     public string AdminNotes { get; set; }
     public string AppCode { get; set; }
-    
+
 
   }
 
@@ -62,8 +63,8 @@ namespace Aasaan_API.Models
     public string AdminNotes { get; set; }
     public string AppCode { get; set; }
     public string SubscriptionStatus { get; set; }
-
     public string Status { get; set; }
+    public int TotalRecords { get; set; }
   }
 
   public class CheckMembershipStatusModel
@@ -88,7 +89,7 @@ namespace Aasaan_API.Models
     public string AppVersion { get; set; }
     public string LastAPICallDate { get; set; }
     public int UserRegistrationId { get; set; }
-    public int Userid { get; set;}
+    public int Userid { get; set; }
     public DateTime RegistaredDate { get; set; }
     public int ExtendDays { get; set; }
     public DateTime ExpiryDate { get; set; }
