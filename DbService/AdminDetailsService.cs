@@ -26,12 +26,82 @@ namespace Aasaan_API.DbService
       return dt;
     }
 
-    public ResponseDeleteUserModel getUsersDetialsByUserID(int UserID)
+    public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+        _connectionCls.addParameter("PageSize", PageSize);
+        _connectionCls.addParameter("PageIndex", PageIndex);
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetAllUsersDetails", CommandType.StoredProcedure));
+        return ConvertToGetAllUsersDetails(dt);
+      }
+      catch (Exception ex)
+      {
+        throw;
+      }
+    }
+
+    // Find your existing converter for GetAllUsersDetails
+    public List<ResponseRegistrationCLS> ConvertToGetAllUsersDetails(DataTable dt)
+    {
+      List<ResponseRegistrationCLS> selectedUser = new List<ResponseRegistrationCLS>();
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return selectedUser; // Return an empty list instead of null
+      }
+
+      foreach (DataRow row in dt.Rows)
+      {
+        var users = new ResponseRegistrationCLS();
+        users.UserID = Convert.ToInt32(row["UserID"]);
+        users.MobileNumber = row["MobileNumber"]?.ToString();
+        users.EmailID = row["EmailID"]?.ToString();
+        if (row["DateofCreation"] != DBNull.Value)
+        {
+          users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.DateofCreation = null;
+        }
+        users.DeviceID = row["DeviceID"]?.ToString();
+        if (row["ExpiryDateApp"] != DBNull.Value)
+        {
+          users.SubscriptionExpiryDate = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.SubscriptionExpiryDate = null;
+        }
+        users.Platform = row["Platform"]?.ToString();
+        users.AppVersion = row["AppVersion"]?.ToString();
+        if (row["LastAPICallDate"] != DBNull.Value)
+        {
+          users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.LastAPICallDate = null;
+        }
+        users.AdminNotes = row["AdminNotes"]?.ToString();
+        users.AppCode = row["AppCode"]?.ToString();
+        users.SubscriptionStatus = row["SubscriptionStatus"]?.ToString();
+        users.TotalRecords = Convert.ToInt32(row["TotalRecords"]);
+        selectedUser.Add(users);
+      }
+
+      return selectedUser;
+    }
+
+    public ResponseDeleteUserModel getUsersDetialsByUserID(int UserID, string Appcode)
     {
       try
       {
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@UserID", UserID);
+        _connectionCls.addParameter("@AppCode", Appcode);
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetUsersRegistrationByUserID", CommandType.StoredProcedure));
         return ConvertToUsersDetialsByUserID(dt);
       }
@@ -40,159 +110,6 @@ namespace Aasaan_API.DbService
         throw;
       }
     }
-
-
-
-    public Task<PaginatedResult<AdminUserCLS>> SearchUsersAsync(string? MobileNumber, int PageSize, int PageIndex)
-    {
-      try
-      {
-        _connectionCls.clearParameter();
-        _connectionCls.addParameter("@MobileNumber", string.IsNullOrWhiteSpace(MobileNumber) ? (object)DBNull.Value : MobileNumber);
-        _connectionCls.addParameter("@PageSize", PageSize);
-        _connectionCls.addParameter("@PageIndex", PageIndex);
-
-
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_SearchUsersByMobile", CommandType.StoredProcedure));
-
-
-        PaginatedResult<AdminUserCLS> result = ConvertToSearchUserResult(dt, PageSize, PageIndex);
-
-
-        return Task.FromResult(result);
-      }
-      catch (Exception ex)
-      {
-        throw new Exception("Error executing P2_sp_SearchUsersByMobile.", ex);
-      }
-    }
-
-    public Task<AdminUserCLS> UpdateUserAsync(AdminUserCLS userToUpdate)
-    {
-      try
-      {
-        _connectionCls.clearParameter();
-
-        object expiryDateParam;
-        if (userToUpdate.SubscriptionExpiryDate.HasValue && userToUpdate.SubscriptionExpiryDate.Value > DateTime.MinValue)
-        {
-          expiryDateParam = userToUpdate.SubscriptionExpiryDate.Value;
-        }
-        else
-        {
-          expiryDateParam = DBNull.Value;
-        }
-
-        _connectionCls.addParameter("@UserID", userToUpdate.UserID);
-        _connectionCls.addParameter("@EmailID", userToUpdate.EmailID);
-        _connectionCls.addParameter("@MobileNumber", userToUpdate.MobileNumber);
-        _connectionCls.addParameter("@DeviceID", userToUpdate.DeviceID);
-        _connectionCls.addParameter("@SubscriptionExpiryDate", expiryDateParam);
-        _connectionCls.addParameter("@Platform", userToUpdate.Platform);
-        _connectionCls.addParameter("@AppVersion", userToUpdate.AppVersion);
-        _connectionCls.addParameter("@AdminNotes", userToUpdate.AdminNotes);
-        _connectionCls.addParameter("@AppCode", userToUpdate.AppCode);
-
-
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateUserDetails", CommandType.StoredProcedure));
-
-        AdminUserCLS updatedUser = ConvertToAdminUser(dt);
-
-        return Task.FromResult(updatedUser);
-      }
-      catch (Exception ex)
-      {
-        if (ex is System.Data.SqlTypes.SqlTypeException)
-        {
-          throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
-        }
-        throw new Exception("Error executing P2_sp_UpdateUserDetails.", ex);
-      }
-    }
-    private AdminUserCLS ConvertToAdminUser(DataTable dt)
-    {
-      if (dt == null || dt.Rows.Count == 0)
-      {
-        return null;
-      }
-
-      DataRow row = dt.Rows[0];
-
-      var user = new AdminUserCLS
-      {
-        UserID = Convert.ToInt32(row["UserID"]),
-        EmailID = row["EmailID"]?.ToString(),
-        MobileNumber = row["MobileNumber"]?.ToString(),
-        DeviceID = row["DeviceID"]?.ToString(),
-        DateOfCreation = Convert.ToDateTime(row["DateofCreation"]),
-        SubscriptionStatus = Convert.ToBoolean(row["SubscriptionStatus"]),
-        SubscriptionExpiryDate = row["SubscriptionExpiryDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["SubscriptionExpiryDate"]),
-        Platform = row["Platform"]?.ToString(),
-        Status = row["Status"]?.ToString(),
-        AppVersion = row["AppVersion"]?.ToString(),
-        AdminNotes = row["AdminNotes"]?.ToString(),
-        AppCode = row["AppCode"]?.ToString()
-      };
-
-      return user;
-    }
-
-    private PaginatedResult<AdminUserCLS> ConvertToSearchUserResult(DataTable dt, int pageIndex, int pageSize)
-    {
-      var userList = new List<AdminUserCLS>();
-      int totalCount = 0;
-
-
-      if (dt == null || dt.Rows.Count == 0)
-      {
-        return new PaginatedResult<AdminUserCLS>
-        {
-          Items = userList,
-          TotalCount = 0,
-          PageIndex = pageIndex,
-          TotalPages = 0
-        };
-      }
-
-
-      totalCount = Convert.ToInt32(dt.Rows[0]["TotalCount"]);
-
-
-      foreach (DataRow row in dt.Rows)
-      {
-        var user = new AdminUserCLS
-        {
-          UserID = Convert.ToInt32(row["UserID"]),
-          EmailID = row["EmailID"]?.ToString(),
-          MobileNumber = row["MobileNumber"]?.ToString(),
-          DeviceID = row["DeviceID"]?.ToString(),
-          DateOfCreation = Convert.ToDateTime(row["DateofCreation"]),
-          SubscriptionStatus = Convert.ToBoolean(row["SubscriptionStatus"]),
-          SubscriptionExpiryDate = row["SubscriptionExpiryDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["SubscriptionExpiryDate"]),
-          Platform = row["Platform"]?.ToString(),
-          Status = row["Status"]?.ToString(),
-          AppVersion = row["AppVersion"]?.ToString(),
-          AdminNotes = row["AdminNotes"]?.ToString(),
-          AppCode = row["AppCode"]?.ToString(),
-          LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]),
-          TotalCount = Convert.ToInt32(row["TotalCount"]),
-        };
-        userList.Add(user);
-      }
-
-
-      var result = new PaginatedResult<AdminUserCLS>
-      {
-        Items = userList,
-        TotalCount = totalCount,
-        PageIndex = pageIndex,
-        TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
-      };
-
-      return result;
-    }
-
-
     public ResponseDeleteUserModel ConvertToUsersDetialsByUserID(DataTable dt)
     {
       if (dt == null || dt.Rows.Count == 0)
@@ -206,12 +123,12 @@ namespace Aasaan_API.DbService
       users.UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
       users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
       users.EmailID = row["EmailID"]?.ToString() ?? string.Empty;
-      users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]?.ToString() ?? string.Empty);
+      users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]);
       users.DeviceID = row["DeviceID"]?.ToString() ?? string.Empty;
-      users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]?.ToString() ?? string.Empty);
+      users.SubscriptionExpiryDate = Convert.ToDateTime(row["ExpiryDateApp"]);
       users.Platform = row["Platform"]?.ToString() ?? string.Empty;
       users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
-      users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]?.ToString() ?? string.Empty);
+      users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]);
       users.AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty;
       users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
 
@@ -219,12 +136,120 @@ namespace Aasaan_API.DbService
     }
 
 
-    public ResponseDeleteUserModel DeleteUsersRecord(int UserID)
+    public List<ResponseRegistrationCLS> SearchUsersAsync(string? MobileNumber ,int PageIndex, int PageSize)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+        _connectionCls.addParameter("@MobileNumber", MobileNumber);
+        _connectionCls.addParameter("@PageIndex", PageIndex);
+        _connectionCls.addParameter("@PageSize", PageSize);
+
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_SearchUsersByMobile", CommandType.StoredProcedure));
+        return ConvertToSearchUserResult(dt);
+
+
+        //return Task.FromResult(result);
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("Error executing P2_sp_SearchUsersByMobile.", ex);
+      }
+    }
+    private List<ResponseRegistrationCLS> ConvertToSearchUserResult(DataTable dt)
+    {
+      List<ResponseRegistrationCLS> selectedUser = new List<ResponseRegistrationCLS>();
+      
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return selectedUser;
+      }
+      foreach (DataRow row in dt.Rows)
+      {
+        var user = new ResponseRegistrationCLS
+        {
+          UserID = Convert.ToInt32(row["UserID"]),
+          EmailID = row["EmailID"]?.ToString(),
+          MobileNumber = row["MobileNumber"]?.ToString(),
+          DeviceID = row["DeviceID"]?.ToString(),
+          DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy"),
+          SubscriptionStatus = row["SubscriptionStatus"].ToString(),
+          ExpiryDateApp = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy"),
+          Platform = row["Platform"]?.ToString(),
+          AppVersion = row["AppVersion"]?.ToString(),
+          AdminNotes = row["AdminNotes"]?.ToString(),
+          AppCode = row["AppCode"]?.ToString(),
+          LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy"),
+          TotalRecords = Convert.ToInt32(row["TotalRecords"]),
+        };
+        selectedUser.Add(user);
+      }
+      return selectedUser;
+    }
+
+    public Task<ResponseRegistrationCLS> UpdateUserAsync(UpdateUsersDetilsAdmin userToUpdate)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+
+        _connectionCls.addParameter("@UserID", userToUpdate.UserID);
+        _connectionCls.addParameter("@MobileNumber", userToUpdate.MobileNumber);
+        _connectionCls.addParameter("@AppCode", userToUpdate.AppCode);
+        _connectionCls.addParameter("@SubscriptionExpiryDate", userToUpdate.SubscriptionExpiryDate);
+
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateUserDetails", CommandType.StoredProcedure));
+
+        ResponseRegistrationCLS updatedUser = ConvertToAdminUser(dt);
+
+        return Task.FromResult(updatedUser);
+      }
+      catch (Exception ex)
+      {
+        if (ex is System.Data.SqlTypes.SqlTypeException)
+        {
+          throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
+        }
+        throw new Exception("Error executing P2_sp_UpdateUserDetails.", ex);
+      }
+    }
+    private ResponseRegistrationCLS ConvertToAdminUser(DataTable dt)
+    {
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return null;
+      }
+
+      DataRow row = dt.Rows[0];
+
+      var user = new ResponseRegistrationCLS
+      {
+        UserID = Convert.ToInt32(row["UserID"]),
+        MobileNumber = row["MobileNumber"]?.ToString(),
+        EmailID = row["EmailID"]?.ToString(),
+        DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy"),
+        DeviceID = row["DeviceID"]?.ToString(),
+        ExpiryDateApp = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy"),
+        Platform = row["Platform"]?.ToString(),
+        AppVersion = row["AppVersion"]?.ToString(),
+        LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy"),
+        AdminNotes = row["AdminNotes"]?.ToString(),
+        AppCode = row["AppCode"]?.ToString(),
+        SubscriptionStatus = row["SubscriptionStatus"].ToString(),
+      };
+
+      return user;
+    }
+
+    public ResponseDeleteUserModel DeleteUsersRecord(int UserID, string Appcode)
     {
       try
       {
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@UserID", UserID);
+        _connectionCls.addParameter("@AppCode", Appcode);
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_DeleteUsersRegistration", CommandType.StoredProcedure));
         return ConvertToLoginList(dt);
       }
@@ -287,189 +312,35 @@ namespace Aasaan_API.DbService
       }
     }
 
-    public List<CheckMembershipStatusModel> CheckMembershipStatus(string Mobilenumber, string DeviceId, Int32 UserId)
+
+    public ResponseRegistrationCLS ApplicationGroupeUpdateAsync(ApplicationGroupeUpdateModel userToUpdate)
     {
       try
       {
         _connectionCls.clearParameter();
-        _connectionCls.addParameter("@MobileNumber", Mobilenumber);
-        _connectionCls.addParameter("@DeviceId", DeviceId);
-        _connectionCls.addParameter("@UserID", UserId);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_CheckMembershipStatus", CommandType.StoredProcedure));
-        return ConvertToCheckMembershipStatus(dt);
+
+        _connectionCls.addParameter("@UserID", userToUpdate.UserID);
+        _connectionCls.addParameter("@MobileNumber", userToUpdate.MobileNumber);
+        _connectionCls.addParameter("@AppCode", userToUpdate.AppCode);
+        _connectionCls.addParameter("@SubscriptionExpiryDate", userToUpdate.SubscriptionExpiryDate);
+
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateGroupeApplicationDetails", CommandType.StoredProcedure));
+
+        ResponseRegistrationCLS updatedUser = ConvertToApplicationGroup(dt);
+
+        return updatedUser;
       }
       catch (Exception ex)
       {
-        throw;
-      }
-    }
-
-    public List<CheckMembershipStatusModel> ConvertToCheckMembershipStatus(DataTable dt)
-    {
-      List<CheckMembershipStatusModel> SelectedUser = new List<CheckMembershipStatusModel>();
-      if (dt == null || dt.Rows.Count == 0)
-      {
-        return null;
-      }
-
-      foreach (DataRow row in dt.Rows)
-      {
-        CheckMembershipStatusModel users = new CheckMembershipStatusModel();
-        DateTime? lastapiDate = GetNullableDate(row["LastAPICallDate"]);
-        string isfacebookuser = row["isfacebookuser"]?.ToString() ?? string.Empty;
-        string isgoogoleuser = row["isgoogleuser"]?.ToString() ?? string.Empty;
-        DateTime lastapidata = Convert.ToDateTime(lastapiDate);
-        string lastdate = lastapidata.ToString();
-        if (lastdate == "01-01-0001 00:00:00")
+        if (ex is System.Data.SqlTypes.SqlTypeException)
         {
-          lastdate = null;
+          throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
         }
-        if (isfacebookuser == null || isfacebookuser == "")
-        {
-          isfacebookuser = null;
-        }
-        if (isgoogoleuser == null)
-        {
-          isgoogoleuser = null;
-        }
-        users.id = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
-        users.email = row["email"]?.ToString() ?? string.Empty;
-        users.password = row["Password"]?.ToString() ?? string.Empty;
-        users.createdata = Convert.ToDateTime(row["createdata"]?.ToString() ?? string.Empty);
-        users.facebook_firstname = row["facebook_firstname"]?.ToString() ?? string.Empty;
-        users.facebook_lastname = row["facebook_lastname"]?.ToString() ?? string.Empty;
-        users.isfacebookuser = Convert.ToBoolean(isfacebookuser);
-        users.isgoogleuser = Convert.ToBoolean(isgoogoleuser);
-        users.FacebookID = row["FacebookID"]?.ToString() ?? string.Empty;
-        users.GoogleID = row["GoogleID"]?.ToString() ?? string.Empty;
-        users.google_firstname = row["google_firstname"]?.ToString() ?? string.Empty;
-        users.google_lastname = row["google_lastname"]?.ToString() ?? string.Empty;
-        users.DeviceId = row["DeviceId"]?.ToString() ?? string.Empty;
-        users.IsActive = Convert.ToBoolean(row["IsActive"]?.ToString() ?? string.Empty);
-        users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
-        users.states = row["states"]?.ToString() ?? string.Empty;
-        users.Platforms = row["Platforms"]?.ToString() ?? string.Empty;
-        users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
-        users.LastAPICallDate = lastdate;
-        users.UserRegistrationId = Convert.ToInt32(row["UserRegistrationId"]?.ToString() ?? string.Empty);
-        users.Userid = Convert.ToInt32(row["Userid"]?.ToString() ?? string.Empty);
-        users.RegistaredDate = Convert.ToDateTime(row["RegistaredDate"]?.ToString() ?? string.Empty);
-        users.ExtendDays = Convert.ToInt32(row["ExtendDays"]?.ToString() ?? string.Empty);
-        users.ExpiryDate = Convert.ToDateTime(row["ExpiryDate"]?.ToString() ?? string.Empty);
-        users.PaidAmount = Convert.ToInt32(row["PaidAmount"]?.ToString() ?? string.Empty);
-        users.Notes = row["Notes"]?.ToString() ?? string.Empty;
-        users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
-        users.UserStatus = row["UserStatus"]?.ToString() ?? string.Empty;
-        SelectedUser.Add(users);
-      }
-
-      return SelectedUser;
-    }
-
-    public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize)
-    {
-      try
-      {
-        _connectionCls.clearParameter();
-        _connectionCls.addParameter("PageSize", PageSize);
-        _connectionCls.addParameter("PageIndex", PageIndex);
-
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetAllUsersDetails", CommandType.StoredProcedure));
-        return ConvertToGetAllUsersDetails(dt);
-      }
-      catch (Exception ex)
-      {
-        throw;
+        throw new Exception("Error executing P2_sp_UpdateGroupeApplicationDetails.", ex);
       }
     }
-
-    // Find your existing converter for GetAllUsersDetails
-    public List<ResponseRegistrationCLS> ConvertToGetAllUsersDetails(DataTable dt)
-    {
-      List<ResponseRegistrationCLS> selectedUser = new List<ResponseRegistrationCLS>();
-      if (dt == null || dt.Rows.Count == 0)
-      {
-        return selectedUser; // Return an empty list instead of null
-      }
-
-      foreach (DataRow row in dt.Rows)
-      {
-        var users = new ResponseRegistrationCLS();
-        users.UserID = Convert.ToInt32(row["UserID"]);
-        users.MobileNumber = row["MobileNumber"]?.ToString();
-        users.EmailID = row["EmailID"]?.ToString();
-        users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]);
-        users.DeviceID = row["DeviceID"]?.ToString();
-        users.SubscriptionExpiryDate = row["SubscriptionExpiryDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["SubscriptionExpiryDate"]);
-        users.Platform = row["Platform"]?.ToString();
-        users.AppVersion = row["AppVersion"]?.ToString();
-        users.LastAPICallDate = row["LastAPICallDate"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(row["LastAPICallDate"]);
-        users.AdminNotes = row["AdminNotes"]?.ToString();
-        users.AppCode = row["AppCode"]?.ToString();
-        users.Status = row["Status"]?.ToString();
-        users.TotalRecords = Convert.ToInt32(row["TotalRecords"]);
-        selectedUser.Add(users);
-      }
-
-      return selectedUser;
-    }
-
-    public DateTime? GetNullableDate(object obj)
-    {
-      if (obj == null || obj == DBNull.Value)
-      {
-        return null;
-      }
-
-      if (DateTime.TryParse(obj.ToString(), out DateTime date))
-      {
-        return date;
-      }
-
-      return null;
-    }
-
-    public UpdateAppVersionModel UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel)
-    {
-      try
-      {
-        _connectionCls.clearParameter();
-        _connectionCls.addParameter("@UserID", updateAppVersionModel.UserID);
-        _connectionCls.addParameter("@MobileNumber", updateAppVersionModel.MobileNumber);
-        _connectionCls.addParameter("@DeviceId", updateAppVersionModel.DeviceId);
-        _connectionCls.addParameter("@AppVersion", updateAppVersionModel.AppVersion);
-        _connectionCls.addParameter("@Platforms", updateAppVersionModel.Platforms);
-        _connectionCls.BeginTransaction();
-        object result = _connectionCls.ExecuteScalar("P2_sp_UpdateAppVersion", CommandType.StoredProcedure);
-        _connectionCls.CommitTransaction();
-        return updateAppVersionModel = updateAppVersionModel;
-      }
-      catch (Exception ex)
-      {
-        throw new Exception("P2_sp_UpdateAppVersion : " + ex.Message);
-      }
-    }
-
-    public ResponseUserModel UpdateUserInactiveToTrial(int UserID, DateTime SubscriptionExpiryDate)
-    {
-      try
-      {
-        _connectionCls.clearParameter();
-        _connectionCls.addParameter("@UserID", UserID);
-        _connectionCls.addParameter("@SubscriptionExpiryDate", SubscriptionExpiryDate);
-        _connectionCls.BeginTransaction();
-        //object result = _connectionCls.ExecuteScalar("P2_sp_Update_UserInActiveToTrial", CommandType.StoredProcedure);
-        //_connectionCls.CommitTransaction();
-
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_Update_UserInActiveToTrial", CommandType.StoredProcedure));
-        return ConvertUpdateuser(dt);
-      }
-      catch (Exception ex)
-      {
-        throw new Exception("P2_sp_Update_UserInActiveToTrial : " + ex.Message);
-      }
-    }
-    public ResponseUserModel ConvertUpdateuser(DataTable dt)
+    private ResponseRegistrationCLS ConvertToApplicationGroup(DataTable dt)
     {
       if (dt == null || dt.Rows.Count == 0)
       {
@@ -477,21 +348,68 @@ namespace Aasaan_API.DbService
       }
 
       DataRow row = dt.Rows[0];
-      ResponseUserModel users = new ResponseUserModel();
 
-      users.UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
-      users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
-      users.EmailID = row["EmailID"]?.ToString() ?? string.Empty;
-      users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]?.ToString() ?? string.Empty);
-      users.DeviceID = row["DeviceID"]?.ToString() ?? string.Empty;
-      users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]?.ToString() ?? string.Empty);
-      users.Platform = row["Platform"]?.ToString() ?? string.Empty;
-      users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
-      users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]?.ToString() ?? string.Empty);
-      users.AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty;
-      users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
+      var user = new ResponseRegistrationCLS
+      {
+        UserID = Convert.ToInt32(row["UserID"]),
+        MobileNumber = row["MobileNumber"]?.ToString(),
+        EmailID = row["EmailID"]?.ToString(),
+        DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy"),
+        DeviceID = row["DeviceID"]?.ToString(),
+        SubscriptionExpiryDate = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy"),
+        Platform = row["Platform"]?.ToString(),
+        AppVersion = row["AppVersion"]?.ToString(),
+        LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy"),
+        AdminNotes = row["AdminNotes"]?.ToString(),
+        AppCode = row["AppCode"]?.ToString(),
+        SubscriptionStatus = row["SubscriptionStatus"].ToString(),
+      };
 
-      return users;
+      return user;
     }
+
+
+    public ResponseChangePassword ChangeAdminPasswords(ChangeAdminPassword changeAdminPassword)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+
+        _connectionCls.addParameter("@UserID", changeAdminPassword.UserID);
+        _connectionCls.addParameter("@OldPassword", changeAdminPassword.OldPassword);
+        _connectionCls.addParameter("@NewPassword", changeAdminPassword.NewPassword);
+
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_ChangeAdminPassword", CommandType.StoredProcedure));
+
+        ResponseChangePassword updatedUser = ConvertTochangepassword(dt);
+
+        return updatedUser;
+      }
+      catch (Exception ex)
+      {
+        if (ex is System.Data.SqlTypes.SqlTypeException)
+        {
+          throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
+        }
+        throw new Exception("Error executing P2_sp_ChangeAdminPassword.", ex);
+      }
+    }
+    private ResponseChangePassword ConvertTochangepassword(DataTable dt)
+    {
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return null;
+      }
+
+      DataRow row = dt.Rows[0];
+
+      var user = new ResponseChangePassword
+      {
+        Message = row["Message"]?.ToString(),
+      };
+
+      return user;
+    }     
   }
 }

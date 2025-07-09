@@ -4,16 +4,13 @@ namespace Aasaan_API.IServices
 {
   public interface IAdmin
   {
-    public ResponseDeleteUserModel getUsersDetialsByUserID(int UserID);
-    public ResponseDeleteUserModel DeleteUsersRecord(int UserID);
+    public ResponseDeleteUserModel getUsersDetialsByUserID(int UserID, string Appcode);
+    public ResponseDeleteUserModel DeleteUsersRecord(int UserID, string Appcode);
     public ResponseDeleteUserModel saveUsersDataInHistoryTable(ResponseDeleteUserModel UserID);
-    public List<CheckMembershipStatusModel> CheckMembershipStatus(string Mobilenumber, string DeviceId, Int32 UserId);
     public List<ResponseRegistrationCLS> GetAllUsersDetails(int PageIndex, int PageSize);
-    public UpdateAppVersionModel UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel);
-    public ResponseUserModel UpdateUserInactiveToTrial(int UserID, DateTime SubscriptionExpiryDate);
-    Task<PaginatedResult<AdminUserCLS>> SearchUsersAsync(string? mobileNumber, int pageIndex, int pageSize);
-    Task<AdminUserCLS> UpdateUserAsync(AdminUserCLS userToUpdate);
-    }
-
-    
+    public List<ResponseRegistrationCLS> SearchUsersAsync(string? mobileNumber, int pageSize, int pageIndex);
+    public Task<ResponseRegistrationCLS> UpdateUserAsync(UpdateUsersDetilsAdmin userToUpdate);
+    public ResponseRegistrationCLS ApplicationGroupeUpdateAsync(ApplicationGroupeUpdateModel applicationGroupeUpdateModel);
+    public ResponseChangePassword ChangeAdminPasswords(ChangeAdminPassword changeAdminPassword);
+  }    
 }

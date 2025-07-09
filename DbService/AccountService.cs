@@ -76,19 +76,44 @@ namespace Aasaan_API.DbService
         DataRow row = dt.Rows[0];
         ResponseRegistrationCLS users = new ResponseRegistrationCLS();
 
-        //DateTime createdata = Convert.ToDateTime(row["createdata"]?.ToString() ?? string.Empty);
-        //DateTime lastapiDate = Convert.ToDateTime(row["LastAPICallDate"]?.ToString() ?? string.Empty);
-        //DateTime expiryDate = Convert.ToDateTime(row["ExpiryDate"]?.ToString() ?? string.Empty);
-
         users.UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
         users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
         users.EmailID = row["EmailID"]?.ToString() ?? string.Empty;
-        users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]?.ToString() ?? string.Empty);
+        if (row["DateofCreation"] != DBNull.Value)
+        {
+          users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.DateofCreation = null; 
+        }
         users.DeviceID = row["DeviceID"]?.ToString() ?? string.Empty;
-        users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]?.ToString() ?? string.Empty);
+        if (row["SubscriptionExpiryDate"] != DBNull.Value)
+        {
+          users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.SubscriptionExpiryDate = null; 
+        }
+        if (row["ExpiryDateApp"] != DBNull.Value)
+        {
+          users.ExpiryDateApp = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.ExpiryDateApp = null;
+        }
         users.Platform = row["Platform"]?.ToString() ?? string.Empty;
         users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
-        users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]?.ToString() ?? string.Empty);
+        if (row["LastAPICallDate"] != DBNull.Value)
+        {
+          users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.LastAPICallDate = null; 
+        }
         users.AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty;
         users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
         users.SubscriptionStatus = row["SubscriptionStatus"]?.ToString() ?? string.Empty;
@@ -132,7 +157,7 @@ namespace Aasaan_API.DbService
       return users;
     }
 
-    public ResponseUserModel LogInWithMobileAndDeviceId(string Mobile, string DeviceId)
+    public List<ResponseUserModel> LogInWithMobileAndDeviceId(string Mobile, string DeviceId)
     {
       try
       {
@@ -149,30 +174,35 @@ namespace Aasaan_API.DbService
       finally { _connectionCls.clearParameter(); }
     }
 
-    public ResponseUserModel ConvertToUserLoginList(DataTable dt)
+    public List<ResponseUserModel> ConvertToUserLoginList(DataTable dt)
     {
       if (dt == null || dt.Rows.Count == 0)
       {
         return null;
       }
 
-      DataRow row = dt.Rows[0];
-      ResponseUserModel users = new ResponseUserModel();
-      
-      users.UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
-      users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
-      users.EmailID = row["EmailID"]?.ToString() ?? string.Empty;
-      users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]?.ToString() ?? string.Empty);
-      users.DeviceID = row["DeviceID"]?.ToString() ?? string.Empty;
-      users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]?.ToString() ?? string.Empty);
-      users.Platform = row["Platform"]?.ToString() ?? string.Empty;
-      users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
-      users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]?.ToString() ?? string.Empty);
-      users.AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty;
-      users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
-      users.SubscriptionStatus = row["SubscriptionStatus"]?.ToString() ?? string.Empty;
-
-      return users;
+      List<ResponseUserModel> selectedUser = new List<ResponseUserModel>();
+      foreach (DataRow row in dt.Rows)
+      {
+        var user = new ResponseUserModel
+        {
+          UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty),
+          MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty,
+          EmailID = row["EmailID"]?.ToString() ?? string.Empty,
+          DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy"),
+          DeviceID = row["DeviceID"]?.ToString() ?? string.Empty,
+          SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]).ToString("dd/MM/yyyy"),
+          ExpiryDateApp = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy"),
+          Platform = row["Platform"]?.ToString() ?? string.Empty,
+          AppVersion = row["AppVersion"]?.ToString() ?? string.Empty,
+          LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy"),
+          AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty,
+          AppCode = row["AppCode"]?.ToString() ?? string.Empty,
+          SubscriptionStatus = row["SubscriptionStatus"]?.ToString() ?? string.Empty,
+        };
+        selectedUser.Add(user);
+      }
+      return selectedUser;
     }
     public DateTime? GetNullableDate(object obj)
     {
@@ -187,6 +217,72 @@ namespace Aasaan_API.DbService
       }
 
       return null;
+    }
+
+    public ResponseUpdateUserModel UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+        _connectionCls.addParameter("@MobileNumber", updateAppVersionModel.MobileNumber);
+        _connectionCls.addParameter("@DeviceId", updateAppVersionModel.DeviceId);
+        _connectionCls.addParameter("@UserID", updateAppVersionModel.UserID);
+        _connectionCls.addParameter("@AppVersion", updateAppVersionModel.AppVersion);
+        _connectionCls.addParameter("@Platform", updateAppVersionModel.Platforms);
+        _connectionCls.BeginTransaction();
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateAppVersion", CommandType.StoredProcedure));
+        return ConvertToUpdateUsers(dt);
+      }
+      catch (Exception ex)
+      {
+        throw new Exception("P2_sp_UpdateAppVersion : " + ex.Message);
+      }
+    }
+    public ResponseUpdateUserModel ConvertToUpdateUsers(DataTable dt)
+    {
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return null;
+      }
+
+      DataRow row = dt.Rows[0];
+      ResponseUpdateUserModel users = new ResponseUpdateUserModel();
+
+      users.UserID = Convert.ToInt32(row["UserID"]?.ToString() ?? string.Empty);
+      users.MobileNumber = row["MobileNumber"]?.ToString() ?? string.Empty;
+      users.EmailID = row["EmailID"]?.ToString() ?? string.Empty;
+      if (row["DateofCreation"] != DBNull.Value)
+      {
+        users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy");
+      }
+      else
+      {
+        users.DateofCreation = null;
+      }
+      users.DeviceID = row["DeviceID"]?.ToString() ?? string.Empty;
+      if (row["SubscriptionExpiryDate"] != DBNull.Value)
+      {
+        users.SubscriptionExpiryDate = Convert.ToDateTime(row["SubscriptionExpiryDate"]).ToString("dd/MM/yyyy");
+      }
+      else
+      {
+        users.SubscriptionExpiryDate = null;
+      }
+      users.Platform = row["Platform"]?.ToString() ?? string.Empty;
+      users.AppVersion = row["AppVersion"]?.ToString() ?? string.Empty;
+      if (row["LastAPICallDate"] != DBNull.Value)
+      {
+        users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy");
+      }
+      else
+      {
+        users.LastAPICallDate = null;
+      }
+      users.AdminNotes = row["AdminNotes"]?.ToString() ?? string.Empty;
+      users.AppCode = row["AppCode"]?.ToString() ?? string.Empty;
+      users.SubscriptionStatus = row["SubscriptionStatus"]?.ToString() ?? string.Empty;
+
+      return users;
     }
   }
 }

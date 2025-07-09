@@ -39,39 +39,39 @@ namespace Aasaan_API.Controllers
     }
 
     [HttpGet("SearchUsers")]
-    public async Task<IActionResult> SearchUsers(string MobileNumber, int PageSize, int PageIndex)
+    public List<ResponseRegistrationCLS> SearchUsers(string MobileNumber, int PageIndex, int PageSize)
     {
       try
       {
-        var result = await _adminService.SearchUsersAsync(MobileNumber, PageSize, PageIndex);
-        return Ok(result);
+        return _adminService.SearchUsersAsync(MobileNumber, PageIndex, PageSize);
+        
       }
       catch (Exception ex)
       {
-        // Log the exception (ex)
-        return StatusCode(500, "An error occurred while processing your request.");
+        return new List<ResponseRegistrationCLS>();
       }
     }
 
     [HttpDelete("DeleteUsersRegisteredRecord")]
-    public string DeleteUsersRecord(int UserID)
+    public string DeleteUsersRecord(int UserID, string Appcode)
     {
       Response<ResponseDeleteUserModel> response = new Response<ResponseDeleteUserModel>();
       ResponseDeleteUserModel usersDetails = new ResponseDeleteUserModel();
       try
       {
-        var details = _adminDetails.getUsersDetialsByUserID(UserID);
+        var details = _adminDetails.getUsersDetialsByUserID(UserID, Appcode);
         if (details == null)
         {
           return "Record not found";
         }
         var data = _adminDetails.saveUsersDataInHistoryTable(details);
-        usersDetails = _adminDetails.DeleteUsersRecord(UserID);
+        usersDetails = _adminDetails.DeleteUsersRecord(UserID, Appcode);
         if (usersDetails == null)
         {
           response.Data = null;
           response.message = "Record deleted successfully";
           response.code = 200;
+          return "Record delete successfully";
         }
         else
         {
@@ -83,99 +83,14 @@ namespace Aasaan_API.Controllers
         response.code = 500;
         response.Data = null;
         response.message = ex.Message;
+        return "";
       }
-      return "Record delete successfully";
-    }
-
-    [HttpGet("CheckMembershipStatus")]
-    public List<CheckMembershipStatusModel> CheckMembershipStatus(string Mobilenumber, string DeviceId, Int32 UserId)
-    {
-      try
-      {
-        return _adminDetails.CheckMembershipStatus(Mobilenumber, DeviceId, UserId);
-      }
-      catch (Exception ex)
-      {
-        return new List<CheckMembershipStatusModel>();
-      }
-    }
-
-    [HttpPost("UpdateAppVersion")]
-    public Response<UpdateAppVersionModel> UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel)
-    {
-      Response<UpdateAppVersionModel> response = new Response<UpdateAppVersionModel>();
-      UpdateAppVersionModel details = new UpdateAppVersionModel();
-      try
-      {
-        details = _adminDetails.UpdateAppVersion(updateAppVersionModel);
-        if (details == null)
-        {
-          response.Data = null;
-          response.message = "Data not updated, please try again";
-          response.code = 0;
-        }
-        else
-        {
-          response.code = 200;
-          response.Data = details;
-          response.message = "Data updated successfully";
-        }
-      }
-      catch (Exception ex)
-      {
-        response.code = 500;
-        response.Data = null;
-        response.message = ex.Message;
-      }
-      return response;
+      return "";
     }
 
 
-    [HttpPost("UpdateUserInactiveToTrialPeriod")]
-    public Response<ResponseUserModel> UpdateUserInactiveToTrial(int UserID, DateTime SubscriptionExpiryDate)
-    {
-      Response<ResponseUserModel> response = new Response<ResponseUserModel>();
-      ResponseUserModel usersDetails = new ResponseUserModel();
-      try
-      {
-        var data = _adminDetails.getUsersDetialsByUserID(UserID);
-        if (data == null)
-        {
-          response.code = 200;
-          response.Data = null;
-          response.message = "PLease enter valid UserID";
-        }
-        if (SubscriptionExpiryDate <= DateTime.Now)
-        {
-          response.code = 200;
-          response.Data = null;
-          response.message = "Please enter future date";
-        }
-        usersDetails = _adminDetails.UpdateUserInactiveToTrial(UserID, SubscriptionExpiryDate);
-        if (usersDetails == null)
-        {
-          response.code = 200;
-          response.Data = null;
-          response.message = "No data found";
-        }
-        else
-        {
-          response.code = 200;
-          response.Data = usersDetails;
-          response.message = "Data updated successfully";
-        }
-      }
-      catch (Exception ex)
-      {
-        response.code = 500;
-        response.Data = null;
-        response.message = ex.Message;
-      }
-      return response;
-    }
-
-    [HttpPut("UpdateUser")]
-    public async Task<IActionResult> UpdateUser([FromBody] AdminUserCLS userToUpdate)
+    [HttpPost("UpdateUser")]
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUsersDetilsAdmin userToUpdate)
     {
       if (userToUpdate.UserID == 0)
       {
@@ -204,5 +119,68 @@ namespace Aasaan_API.Controllers
         return StatusCode(500, "An error occurred while updating the user.");
       }
     }
+
+
+    [HttpPost("ApplicationGroupeUpdate")]
+    public Response<ResponseRegistrationCLS> ApplicationGroupeUpdate([FromBody] ApplicationGroupeUpdateModel userToUpdate)
+    {
+      Response<ResponseRegistrationCLS> response = new Response<ResponseRegistrationCLS>();
+      ResponseRegistrationCLS usersDetails = new ResponseRegistrationCLS();
+
+      try
+      {
+        var updatedUser = _adminService.ApplicationGroupeUpdateAsync(userToUpdate);
+        if (updatedUser != null)
+        {
+          response.code = 200;
+          response.Data = updatedUser;
+          response.message = "Data updated successfully";
+        }
+        else
+        {
+          response.Data = null;
+          response.message = "Data not updated, please try again";
+          response.code = 0;
+        }
+      }
+      catch (Exception ex)
+      {
+        response.code = 500;
+        response.Data = null;
+        response.message = ex.Message;
+      }
+      return response;
+    }
+
+    [HttpPost("ChangeAdminPassword")]
+    public Response<ResponseChangePassword> ChangeAdminPassword([FromBody] ChangeAdminPassword userToUpdate)
+    {
+      Response<ResponseChangePassword> response = new Response<ResponseChangePassword>();
+      ResponseChangePassword usersDetails = new ResponseChangePassword();
+
+      try
+      {
+        var updatedUser = _adminService.ChangeAdminPasswords(userToUpdate);
+        if (updatedUser != null)
+        {
+          response.code = 200;
+          response.Data = null;
+          response.message = updatedUser.Message;
+        }
+        else
+        {
+          response.Data = null;
+          response.message = updatedUser.Message;
+          response.code = 400;
+        }
+      }
+      catch (Exception ex)
+      {
+        response.code = 500;
+        response.Data = null;
+        response.message = ex.Message;
+      }
+      return response;
+    }        
   }
 }
