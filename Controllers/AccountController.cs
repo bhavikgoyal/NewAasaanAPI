@@ -32,38 +32,12 @@ namespace Aasaan_API.Controllers
         }
         else
         {
-          var create = _signInManager.LogInWithMobileAndDeviceId(registrationCLS.MobileNumber, registrationCLS.DeviceID);
-         
-          if (create != null)
-          {
-            var newcreate = new ResponseRegistrationCLS
-            {
-              UserID = create.UserID,
-              MobileNumber = create.MobileNumber,   
-              EmailID = create.EmailID,
-              DateofCreation = create.DateofCreation,
-              DeviceID = create.DeviceID,
-              SubscriptionExpiryDate = create.SubscriptionExpiryDate,
-              Platform = create.Platform,
-              AppVersion = create.AppVersion,
-              LastAPICallDate = create.LastAPICallDate,
-              AdminNotes = create.AdminNotes,
-              AppCode = create.AppCode,
-              SubscriptionStatus = create.SubscriptionStatus
-            };
-
-            response.code = 200;
-            response.Data = null;
-            response.message = "User already registered";
-            return response;
-          }
           var data = _signInManager.SaveRegistrationData(registrationCLS);
           if (data != null)
           {
             response.code = 200;
             response.Data = data;
             response.message = "User registered successfully";
-            return response;
           }
         }
       }
@@ -76,7 +50,7 @@ namespace Aasaan_API.Controllers
       return response;
     }
 
-    [HttpPost("LogIn")]
+    [HttpPost("AdminLogIn")]
     public Response<LoginModel> Login(string Email, string Password) 
     {
       Response<LoginModel> response = new Response<LoginModel>();
@@ -109,29 +83,81 @@ namespace Aasaan_API.Controllers
     }
 
     [HttpPost("LogInWithMobileAndDeviceId")]
-    public Response<ResponseUserModel> LogInWithMobileAndDeviceId(string Mobile, string DeviceId)
+    public Response<List<ResponseUserModel>> LogInWithMobileAndDeviceId(string Mobile, string DeviceId)
     {
-      Response<ResponseUserModel> response = new Response<ResponseUserModel>();
-      ResponseUserModel usersDetails = new ResponseUserModel();
+      Response<List<ResponseUserModel>> response = new Response<List<ResponseUserModel>>();
+      List<ResponseUserModel> usersDetails = new List<ResponseUserModel>();
+
       try
       {
-        usersDetails = _signInManager.LogInWithMobileAndDeviceId(Mobile, DeviceId);
-        if (usersDetails == null)
+        var data = _signInManager.LogInWithMobileAndDeviceId(Mobile, DeviceId);
+
+        if (data != null && data.Any()) 
         {
+          foreach (var user in data)
+          {
+            var details = new ResponseUserModel
+            {
+              UserID = Convert.ToInt32(user.UserID),
+              MobileNumber = user.MobileNumber,
+              EmailID = user.EmailID,
+              DateofCreation = user.DateofCreation,
+              DeviceID = user.DeviceID,
+              SubscriptionExpiryDate = user.SubscriptionExpiryDate,
+              ExpiryDateApp = user.ExpiryDateApp,
+              Platform = user.Platform,
+              AppVersion = user.AppVersion,
+              LastAPICallDate = user.LastAPICallDate,
+              AdminNotes = user.AdminNotes,
+              AppCode = user.AppCode,
+              SubscriptionStatus = user.SubscriptionStatus
+            };
+            usersDetails.Add(details); 
+          }
+
           response.code = 200;
-          response.Data = null;
-          response.message = "Invalid Login Credential";          
+          response.Data = usersDetails;
+          response.message = "User already exist.";
         }
         else
         {
-          var token = TokenManager.GenerateTokens(usersDetails.MobileNumber, usersDetails.DeviceID, 1, Convert.ToInt32(usersDetails.UserID));
-          usersDetails.Token = token;
-          response.code = 200;
-          response.Data = usersDetails;
-          response.message = "Data fetched successfully";
+          response.code = 404;
+          response.Data = null;
+          response.message = "User not found.";
         }
       }
-      catch(Exception ex) 
+      catch (Exception ex)
+      {
+        response.code = 500;
+        response.Data = null;
+        response.message = "An internal server error occurred: " + ex.Message;
+      }
+      return response;
+    }
+
+
+    [HttpPost("UpdateAppVersion")]
+    public Response<ResponseUpdateUserModel> UpdateAppVersion(UpdateAppVersionModel updateAppVersionModel)
+    {
+      Response<ResponseUpdateUserModel> response = new Response<ResponseUpdateUserModel>();
+      ResponseUpdateUserModel details = new ResponseUpdateUserModel();
+      try
+      {
+        details = _signInManager.UpdateAppVersion(updateAppVersionModel);
+        if (details == null)
+        {
+          response.Data = null;
+          response.message = "Data not updated, please try again";
+          response.code = 0;
+        }
+        else
+        {
+          response.code = 200;
+          response.Data = details;
+          response.message = "Data updated successfully";
+        }
+      }
+      catch (Exception ex)
       {
         response.code = 500;
         response.Data = null;
