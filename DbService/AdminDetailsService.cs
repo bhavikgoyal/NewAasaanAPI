@@ -34,7 +34,7 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("PageSize", PageSize);
         _connectionCls.addParameter("PageIndex", PageIndex);
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetAllUsersDetails", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_GetAllUsersDetails", CommandType.StoredProcedure));
         return ConvertToGetAllUsersDetails(dt);
       }
       catch (Exception ex)
@@ -102,7 +102,7 @@ namespace Aasaan_API.DbService
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@UserID", UserID);
         _connectionCls.addParameter("@AppCode", Appcode);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_GetUsersRegistrationByUserID", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_GetUsersRegistrationByUserID", CommandType.StoredProcedure));
         return ConvertToUsersDetialsByUserID(dt);
       }
       catch (Exception ex)
@@ -146,7 +146,7 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@PageSize", PageSize);
 
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_SearchUsersByMobile", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_SearchUsersByMobile", CommandType.StoredProcedure));
         return ConvertToSearchUserResult(dt);
 
 
@@ -154,7 +154,7 @@ namespace Aasaan_API.DbService
       }
       catch (Exception ex)
       {
-        throw new Exception("Error executing P2_sp_SearchUsersByMobile.", ex);
+        throw new Exception("Error executing sp_SearchUsersByMobile.", ex);
       }
     }
     private List<ResponseRegistrationCLS> ConvertToSearchUserResult(DataTable dt)
@@ -188,7 +188,7 @@ namespace Aasaan_API.DbService
       return selectedUser;
     }
 
-    public Task<ResponseRegistrationCLS> UpdateUserAsync(UpdateUsersDetilsAdmin userToUpdate)
+    public ResponseRegistrationCLS UpdateUserAsync(UpdateUsersDetilsAdmin userToUpdate)
     {
       try
       {
@@ -200,11 +200,11 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@SubscriptionExpiryDate", userToUpdate.SubscriptionExpiryDate);
 
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateUserDetails", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_UpdateUserDetails", CommandType.StoredProcedure));
 
-        ResponseRegistrationCLS updatedUser = ConvertToAdminUser(dt);
+        return ConvertToAdminUser(dt);
 
-        return Task.FromResult(updatedUser);
+        //return Task.FromResult(updatedUser);
       }
       catch (Exception ex)
       {
@@ -212,7 +212,7 @@ namespace Aasaan_API.DbService
         {
           throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
         }
-        throw new Exception("Error executing P2_sp_UpdateUserDetails.", ex);
+        throw new Exception("Error executing sp_UpdateUserDetails.", ex);
       }
     }
     private ResponseRegistrationCLS ConvertToAdminUser(DataTable dt)
@@ -250,7 +250,7 @@ namespace Aasaan_API.DbService
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@UserID", UserID);
         _connectionCls.addParameter("@AppCode", Appcode);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_DeleteUsersRegistration", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_DeleteUsersRegistration", CommandType.StoredProcedure));
         return ConvertToLoginList(dt);
       }
       catch (Exception ex)
@@ -280,13 +280,13 @@ namespace Aasaan_API.DbService
         _connectionCls.clearParameter();
         usershistorydata(responseDeleteUser, DBTrans.Insert);
         _connectionCls.BeginTransaction();
-        object result = _connectionCls.ExecuteScalar("P2_sp_InsertUsersHistory", CommandType.StoredProcedure);
+        object result = _connectionCls.ExecuteScalar("sp_InsertUsersHistory", CommandType.StoredProcedure);
         _connectionCls.CommitTransaction();
         return responseDeleteUser = responseDeleteUser;
       }
       catch (Exception ex)
       {
-        throw new Exception("P2_sp_InsertUsersHistory : " + ex.Message);
+        throw new Exception("sp_InsertUsersHistory : " + ex.Message);
       }
     }
     private void usershistorydata(ResponseDeleteUserModel obj, DB_con.DBTrans trans)
@@ -325,7 +325,7 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@SubscriptionExpiryDate", userToUpdate.SubscriptionExpiryDate);
 
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateGroupeApplicationDetails", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_UpdateGroupeApplicationDetails", CommandType.StoredProcedure));
 
         ResponseRegistrationCLS updatedUser = ConvertToApplicationGroup(dt);
 
@@ -337,7 +337,7 @@ namespace Aasaan_API.DbService
         {
           throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
         }
-        throw new Exception("Error executing P2_sp_UpdateGroupeApplicationDetails.", ex);
+        throw new Exception("Error executing sp_UpdateGroupeApplicationDetails.", ex);
       }
     }
     private ResponseRegistrationCLS ConvertToApplicationGroup(DataTable dt)
@@ -380,7 +380,7 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@NewPassword", changeAdminPassword.NewPassword);
 
 
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_ChangeAdminPassword", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_ChangeAdminPassword", CommandType.StoredProcedure));
 
         ResponseChangePassword updatedUser = ConvertTochangepassword(dt);
 
@@ -392,7 +392,7 @@ namespace Aasaan_API.DbService
         {
           throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
         }
-        throw new Exception("Error executing P2_sp_ChangeAdminPassword.", ex);
+        throw new Exception("Error executing sp_ChangeAdminPassword.", ex);
       }
     }
     private ResponseChangePassword ConvertTochangepassword(DataTable dt)
@@ -410,6 +410,122 @@ namespace Aasaan_API.DbService
       };
 
       return user;
-    }     
+    }
+
+    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetails(int PageIndex, int PageSize)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+        _connectionCls.addParameter("@PageSize", PageSize);
+        _connectionCls.addParameter("@PageIndex", PageIndex);
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_GetAllAppsGroupDetails", CommandType.StoredProcedure));
+        return ConvertToGetAllGroupsUsersDetails(dt);
+      }
+      catch (Exception ex)
+      {
+        throw;
+      }
+    }
+
+    // Find your existing converter for GetAllUsersDetails
+    public List<ResponseUsersGroupDetails> ConvertToGetAllGroupsUsersDetails(DataTable dt)
+    {
+      List<ResponseUsersGroupDetails> selectedUser = new List<ResponseUsersGroupDetails>();
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return selectedUser; // Return an empty list instead of null
+      }
+
+      foreach (DataRow row in dt.Rows)
+      {
+        var users = new ResponseUsersGroupDetails();
+        users.UserID = Convert.ToInt32(row["UserID"]);
+        users.MobileNumber = row["MobileNumber"]?.ToString();
+        users.EmailID = row["EmailID"]?.ToString();
+        if (row["DateofCreation"] != DBNull.Value)
+        {
+          users.DateofCreation = Convert.ToDateTime(row["DateofCreation"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.DateofCreation = null;
+        }
+        users.DeviceID = row["DeviceID"]?.ToString();
+        if (row["ExpiryDateApp"] != DBNull.Value)
+        {
+          users.ExpiryDateApp = Convert.ToDateTime(row["ExpiryDateApp"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.ExpiryDateApp = null;
+        }
+        users.Platform = row["Platform"]?.ToString();
+        users.AppVersion = row["AppVersion"]?.ToString();
+        if (row["LastAPICallDate"] != DBNull.Value)
+        {
+          users.LastAPICallDate = Convert.ToDateTime(row["LastAPICallDate"]).ToString("dd/MM/yyyy");
+        }
+        else
+        {
+          users.LastAPICallDate = null;
+        }
+        users.AdminNotes = row["AdminNotes"]?.ToString();
+        users.AppCode = row["AppCode"]?.ToString();
+        users.GroupName = row["GroupName"]?.ToString();
+        users.SubscriptionStatus = row["SubscriptionStatus"]?.ToString();
+        users.TotalRecords = Convert.ToInt32(row["TotalRecords"]);
+        selectedUser.Add(users);
+      }
+
+      return selectedUser;
+    }
+
+    public ResponseUpdatedGroupName UpdateGroupeNameInGroupOfApplications(RequestUpdateGroupeNameInGroupOfApplication userToUpdate)
+    {
+      try
+      {
+        _connectionCls.clearParameter();
+
+        _connectionCls.addParameter("@UserID", userToUpdate.UserID);
+        _connectionCls.addParameter("@MobileNumber", userToUpdate.MobileNumber);
+        _connectionCls.addParameter("@AppCodeOne", userToUpdate.AppCodeOne);
+        _connectionCls.addParameter("@AppCodeTwo", userToUpdate.AppCodeTwo);
+
+
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_UpdateGroupeNameInGroupOfApplication", CommandType.StoredProcedure));
+
+        return ConvertToUpdateGroupName(dt);
+        
+      }
+      catch (Exception ex)
+      {
+        if (ex is System.Data.SqlTypes.SqlTypeException)
+        {
+          throw new Exception("A date value was out of the acceptable SQL Server range.", ex);
+        }
+        throw new Exception("Error executing sp_UpdateUserDetails.", ex);
+      }
+    }
+
+    private ResponseUpdatedGroupName ConvertToUpdateGroupName(DataTable dt)
+    {
+      if (dt == null || dt.Rows.Count == 0)
+      {
+        return null;
+      }
+
+      DataRow row = dt.Rows[0];
+
+      var user = new ResponseUpdatedGroupName
+      {
+        Status = row["Status"]?.ToString(),
+        Message = row["Message"]?.ToString(),
+      };
+
+      return user;
+    }
+
   }
 }
