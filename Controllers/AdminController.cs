@@ -3,14 +3,13 @@ using Aasaan_API.Models;
 using Aasaan_API.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Aasaan_API.Controllers
-
 {
-
   [Authorize]
   [Route("api/[controller]")]
   [ApiController]
@@ -44,7 +43,7 @@ namespace Aasaan_API.Controllers
       try
       {
         return _adminService.SearchUsersAsync(MobileNumber, PageIndex, PageSize);
-        
+
       }
       catch (Exception ex)
       {
@@ -90,33 +89,45 @@ namespace Aasaan_API.Controllers
 
 
     [HttpPost("UpdateUser")]
-    public async Task<IActionResult> UpdateUser([FromBody] UpdateUsersDetilsAdmin userToUpdate)
+    public Response<ResponseRegistrationCLS> UpdateUser([FromBody] UpdateUsersDetilsAdmin userToUpdate)
     {
-      if (userToUpdate.UserID == 0)
-      {
-        return BadRequest("ID mismatch.");
-      }
+      Response<ResponseRegistrationCLS> response = new Response<ResponseRegistrationCLS>();
+      ResponseRegistrationCLS updatedUser = new ResponseRegistrationCLS();
 
-      if (!ModelState.IsValid)
+      if (userToUpdate.UserID == 0 || userToUpdate == null)
       {
-        return BadRequest(ModelState);
+        response.code = 500;
+        response.Data = null;
+        response.message = "ID mismatch";
+        return response;
       }
 
       try
       {
-        var updatedUser = await _adminService.UpdateUserAsync(userToUpdate);
+        updatedUser = _adminService.UpdateUserAsync(userToUpdate);
 
-        if (updatedUser == null)
+        if (updatedUser != null)
         {
-          return NotFound($"User with ID {userToUpdate.UserID} not found.");
+          response.code = 200;
+          response.Data = updatedUser;
+          response.message = "Update user Details successfully";
+          return response;
+        }
+        else
+        {
+          response.code = 400;
+          response.Data = null;
+          response.message = "Please try again";
+          return response;
         }
 
-        return Ok(updatedUser);
       }
       catch (Exception ex)
       {
-
-        return StatusCode(500, "An error occurred while updating the user.");
+        response.code = 400;
+        response.Data = null;
+        response.message = "Please try again";
+        return response;
       }
     }
 
@@ -181,6 +192,71 @@ namespace Aasaan_API.Controllers
         response.message = ex.Message;
       }
       return response;
-    }        
+    }
+
+    [HttpGet("GetAllGroupsApplicationsDetails")]
+    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetail(int PageIndex, int PageSize)
+    {
+      try
+      {
+        return _adminDetails.GetAllGroupsApplicationsDetails(PageIndex, PageSize);
+      }
+      catch (Exception ex)
+      {
+        return new List<ResponseUsersGroupDetails>();
+      }
+    }
+
+
+    [HttpPost("UpdateGroupeNameInGroupOfApplication")]
+    public Response<ResponseUpdatedGroupName> UpdateGroupeNameInGroupOfApplication([FromBody] RequestUpdateGroupeNameInGroupOfApplication userToUpdate)
+    {
+      Response<ResponseUpdatedGroupName> response = new Response<ResponseUpdatedGroupName>();
+      ResponseUpdatedGroupName updatedUser = new ResponseUpdatedGroupName();
+
+      if (userToUpdate.UserID == 0 || userToUpdate == null)
+      {
+        response.code = 500;
+        response.Data = null;
+        response.message = "ID mismatch";
+        return response;
+      }
+
+      if (userToUpdate.AppCodeOne == userToUpdate.AppCodeTwo)
+      {
+        response.code = 500;
+        response.Data = null;
+        response.message = "You can not use same appcode, please chose different appcode";
+        return response;
+      }
+      try
+      {
+        updatedUser = _adminService.UpdateGroupeNameInGroupOfApplications(userToUpdate);
+
+        if (updatedUser != null)
+        {
+          response.code = 200;
+          response.Data = updatedUser;
+          response.message = updatedUser.Message;
+          return response;
+        }
+        else
+        {
+          response.code = 400;
+          response.Data = null;
+          response.message = "Please try again";
+          return response;
+        }
+
+      }
+      catch (Exception ex)
+      {
+        response.code = 400;
+        response.Data = null;
+        response.message = "Please try again";
+        return response;
+      }
+    }
+
   }
 }

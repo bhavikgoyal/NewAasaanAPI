@@ -30,13 +30,13 @@ namespace Aasaan_API.DbService
         //_connectionCls.BeginTransaction();
         _connectionCls.clearParameter();
         RegistrationData(registrationCL, DBTrans.Insert);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_Insert_UsersRegistration", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_Insert_UsersRegistration", CommandType.StoredProcedure));
         //_connectionCls.CommitTransaction();
         return ConvertToRegistrationData(dt);
       }
       catch (Exception ex)
       {
-        throw new Exception("P2_sp_Insert_UsersRegistration : " + ex.Message);
+        throw new Exception("sp_Insert_UsersRegistration : " + ex.Message);
       }
       finally 
       {
@@ -132,7 +132,7 @@ namespace Aasaan_API.DbService
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@Email", username);
         _connectionCls.addParameter("@Password", password);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_AdminLogin", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_AdminLogin", CommandType.StoredProcedure));
         return ConvertToLoginList(dt);
       }
       catch (Exception ex)
@@ -164,7 +164,7 @@ namespace Aasaan_API.DbService
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@MobileNumber", Mobile);
         _connectionCls.addParameter("@DeviceId", DeviceId);
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_CheckUserMobilenoAndDeviceIdexist", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_CheckUserMobilenoAndDeviceIdexist", CommandType.StoredProcedure));
         return ConvertToUserLoginList(dt);
       }
       catch (Exception ex)
@@ -230,12 +230,12 @@ namespace Aasaan_API.DbService
         _connectionCls.addParameter("@AppVersion", updateAppVersionModel.AppVersion);
         _connectionCls.addParameter("@Platform", updateAppVersionModel.Platforms);
         _connectionCls.BeginTransaction();
-        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("P2_sp_UpdateAppVersion", CommandType.StoredProcedure));
+        DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_UpdateAppVersion", CommandType.StoredProcedure));
         return ConvertToUpdateUsers(dt);
       }
       catch (Exception ex)
       {
-        throw new Exception("P2_sp_UpdateAppVersion : " + ex.Message);
+        throw new Exception("sp_UpdateAppVersion : " + ex.Message);
       }
     }
     public ResponseUpdateUserModel ConvertToUpdateUsers(DataTable dt)
