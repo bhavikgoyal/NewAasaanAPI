@@ -195,11 +195,11 @@ namespace Aasaan_API.Controllers
     }
 
     [HttpGet("GetAllGroupsApplicationsDetails")]
-    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetail(int PageIndex, int PageSize)
+    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetail(int PageIndex, int PageSize, string MobileNumber = null)
     {
       try
       {
-        return _adminDetails.GetAllGroupsApplicationsDetails(PageIndex, PageSize);
+        return _adminDetails.GetAllGroupsApplicationsDetails(PageIndex, PageSize, MobileNumber);
       }
       catch (Exception ex)
       {
@@ -221,14 +221,7 @@ namespace Aasaan_API.Controllers
         response.message = "ID mismatch";
         return response;
       }
-
-      if (userToUpdate.AppCodeOne == userToUpdate.AppCodeTwo)
-      {
-        response.code = 500;
-        response.Data = null;
-        response.message = "You can not use same appcode, please chose different appcode";
-        return response;
-      }
+      
       try
       {
         updatedUser = _adminService.UpdateGroupeNameInGroupOfApplications(userToUpdate);

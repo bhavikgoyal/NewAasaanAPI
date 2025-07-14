@@ -12,7 +12,7 @@ namespace Aasaan_API.IServices
     public ResponseRegistrationCLS UpdateUserAsync(UpdateUsersDetilsAdmin userToUpdate);
     public ResponseRegistrationCLS ApplicationGroupeUpdateAsync(ApplicationGroupeUpdateModel applicationGroupeUpdateModel);
     public ResponseChangePassword ChangeAdminPasswords(ChangeAdminPassword changeAdminPassword);
-    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetails(int PageIndex, int PageSize);
+    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetails(int PageIndex, int PageSize, string MobileNUmber);
     public ResponseUpdatedGroupName UpdateGroupeNameInGroupOfApplications(RequestUpdateGroupeNameInGroupOfApplication userToUpdate);
 
   }    

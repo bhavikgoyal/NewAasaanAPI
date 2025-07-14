@@ -412,13 +412,14 @@ namespace Aasaan_API.DbService
       return user;
     }
 
-    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetails(int PageIndex, int PageSize)
+    public List<ResponseUsersGroupDetails> GetAllGroupsApplicationsDetails(int PageIndex, int PageSize, string MobileNumber)
     {
       try
       {
         _connectionCls.clearParameter();
         _connectionCls.addParameter("@PageSize", PageSize);
         _connectionCls.addParameter("@PageIndex", PageIndex);
+        _connectionCls.addParameter("@MobileNumberSearch", MobileNumber);
 
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_GetAllAppsGroupDetails", CommandType.StoredProcedure));
         return ConvertToGetAllGroupsUsersDetails(dt);
@@ -486,12 +487,13 @@ namespace Aasaan_API.DbService
     {
       try
       {
-        _connectionCls.clearParameter();
+        string appCodeCsv = string.Join(",", userToUpdate.AppCodes);
 
+        _connectionCls.clearParameter();
         _connectionCls.addParameter("@UserID", userToUpdate.UserID);
         _connectionCls.addParameter("@MobileNumber", userToUpdate.MobileNumber);
-        _connectionCls.addParameter("@AppCodeOne", userToUpdate.AppCodeOne);
-        _connectionCls.addParameter("@AppCodeTwo", userToUpdate.AppCodeTwo);
+        _connectionCls.addParameter("@AppCodes", appCodeCsv);
+        //_connectionCls.addParameter("@AppCodeTwo", userToUpdate.AppCodeTwo);
 
 
         DataTable dt = ConvertDatareadertoDataTable(_connectionCls.ExecuteReader("sp_UpdateGroupeNameInGroupOfApplication", CommandType.StoredProcedure));
