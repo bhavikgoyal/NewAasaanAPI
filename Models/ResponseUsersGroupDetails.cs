@@ -22,8 +22,7 @@
   {
     public int UserID { get; set; }
     public string MobileNumber { get; set; }
-    public string AppCodeOne { get; set; }
-    public string AppCodeTwo { get; set; }
+    public List<string> AppCodes { get; set; }
   }
 
   public class ResponseUpdatedGroupName
